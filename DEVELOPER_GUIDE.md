@@ -158,3 +158,27 @@ make swag        # 更新 Swagger（如果 API 有变化）
 
 
 **仓库地址**：https://github.com/yeegeek/uyou-go-api-starter
+
+## 8. 代码风格指南
+
+- **命名规范**: 遵循 Go 语言官方命名规范。
+- **错误处理**: 错误信息小写开头，不带标点。
+- **日志**: 使用 `slog` 结构化日志，添加关键上下文信息。
+- **注释**: 为所有公共函数和复杂逻辑添加注释。
+
+## 9. Git 工作流
+
+- **分支模型**: Git Flow
+- **提交信息**: 遵循 Conventional Commits 规范
+
+## 10. 常见问题解答
+
+- **如何添加新的 gRPC 服务？**
+  1. 在 `api/proto/` 目录下创建新的 `.proto` 文件。
+  2. 运行 `make proto` 生成代码。
+  3. 在 `internal/grpc/server/` 目录下实现新的 gRPC 服务。
+
+- **如何添加新的环境变量？**
+  1. 在 `internal/config/config.go` 中添加配置字段。
+  2. 在 `configs/config.yaml` 中添加默认值。
+  3. 在 `.env.example` 中添加示例。
