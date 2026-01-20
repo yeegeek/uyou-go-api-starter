@@ -1,0 +1,54 @@
+# Production docker-compose
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ${DATABASE_CONTAINER_NAME_PROD:-go_api_db_prod}
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      POSTGRES_DB: ${DATABASE_NAME:-grab}
+    # No ports exposed to host - only accessible within Docker network
+    expose:
+      - "${DATABASE_PORT:-5432}"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    networks:
+      - go_api_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-postgres}"]
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-5s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-30s}
+    restart: always
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production  # Use production stage
+    container_name: ${APP_CONTAINER_NAME_PROD:-go_api_app_prod}
+    env_file:
+      - .env
+    ports:
+      - "${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
+    # No volumes in production - code is baked into the image
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - go_api_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT:-8080}/health/live || exit 1"]
+      interval: ${HEALTH_CHECK_INTERVAL:-10s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-5s}
+      retries: ${HEALTH_CHECK_RETRIES:-5}
+    restart: always
+
+networks:
+  go_api_network:
+    driver: bridge
+
+volumes:
+  postgres_data_prod:
+

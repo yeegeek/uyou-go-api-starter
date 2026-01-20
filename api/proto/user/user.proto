@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "github.com/uyou/uyou-go-api-starter/api/proto/user";
+
+// UserService 用户服务 gRPC 接口
+service UserService {
+  // GetUser 获取用户信息
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  
+  // GetUserByEmail 根据邮箱获取用户信息
+  rpc GetUserByEmail(GetUserByEmailRequest) returns (GetUserResponse);
+  
+  // ListUsers 获取用户列表
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  
+  // UpdateUser 更新用户信息
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  
+  // DeleteUser 删除用户
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+}
+
+// GetUserRequest 获取用户请求
+message GetUserRequest {
+  uint32 id = 1;
+}
+
+// GetUserByEmailRequest 根据邮箱获取用户请求
+message GetUserByEmailRequest {
+  string email = 1;
+}
+
+// ListUsersRequest 获取用户列表请求
+message ListUsersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+// UpdateUserRequest 更新用户请求
+message UpdateUserRequest {
+  uint32 id = 1;
+  string name = 2;
+  string email = 3;
+}
+
+// DeleteUserRequest 删除用户请求
+message DeleteUserRequest {
+  uint32 id = 1;
+}
+
+// User 用户信息
+message User {
+  uint32 id = 1;
+  string name = 2;
+  string email = 3;
+  repeated string roles = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}
+
+// GetUserResponse 获取用户响应
+message GetUserResponse {
+  User user = 1;
+}
+
+// ListUsersResponse 获取用户列表响应
+message ListUsersResponse {
+  repeated User users = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// UpdateUserResponse 更新用户响应
+message UpdateUserResponse {
+  User user = 1;
+}
+
+// DeleteUserResponse 删除用户响应
+message DeleteUserResponse {
+  bool success = 1;
+  string message = 2;
+}

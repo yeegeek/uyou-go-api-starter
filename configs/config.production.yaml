@@ -1,0 +1,41 @@
+# ===========================================
+# Go REST API Boilerplate - Production Configuration
+# ===========================================
+# 
+# This file contains production-specific overrides
+# 📋 For ALL configuration options see: config.yaml (base configuration)
+# 🔧 Environment variables (.env) have highest priority and will override these values
+#
+# ===========================================
+
+app:
+  name: "UYou API Starter API"
+  environment: "production"
+  debug: false                      # Disable debug mode in production
+
+database:
+  host: "db"
+  port: 5432
+  user: "postgres"
+  password: ""                      # REQUIRED: set via DATABASE_PASSWORD environment variable
+  name: "uyou_api"
+  sslmode: "require"                # SSL required in production
+
+jwt:
+  ttlhours: 24
+
+server:
+  port: "8080"
+  readtimeout: 10
+  writetimeout: 10
+  idletimeout: 120
+  shutdowntimeout: 30
+  maxheaderbytes: 1048576
+
+logging:
+  level: "info"
+
+migrations:
+  directory: "./migrations"
+  timeout: 300                      # 5 minutes for production
+  locktimeout: 15                   # 15 seconds lock timeout

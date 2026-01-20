@@ -1,0 +1,58 @@
+# Development docker compose with hot-reload
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ${DATABASE_CONTAINER_NAME:-go_api_db}
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      POSTGRES_DB: ${DATABASE_NAME:-grab}
+    # No ports exposed to host - only accessible within Docker network
+    expose:
+      - "${DATABASE_PORT:-5432}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - go_api_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-postgres}"]
+      interval: ${HEALTH_CHECK_INTERVAL:-15s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-5s}
+      retries: ${HEALTH_CHECK_RETRIES:-5}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-15s}
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development  # Use development stage
+    container_name: ${APP_CONTAINER_NAME:-go_api_app}
+    environment:
+      - DOCKER_ENV=true
+      - SKIP_INTEGRATION_TESTS=true
+    env_file:
+      - .env
+    ports:
+      - "${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
+    volumes:
+      # Mount source code for hot-reload in development
+      - ./:/app
+      - /app/tmp  # Exclude tmp directory
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - go_api_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT:-8080}/health/live || exit 1"]
+      interval: ${HEALTH_CHECK_INTERVAL:-10s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-5s}
+      retries: ${HEALTH_CHECK_RETRIES:-5}
+    restart: unless-stopped
+
+networks:
+  go_api_network:
+    driver: bridge
+
+volumes:
+  postgres_data:

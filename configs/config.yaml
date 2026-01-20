@@ -1,0 +1,103 @@
+# ===========================================
+# Go REST API Boilerplate - Base Configuration
+# ===========================================
+# 
+# CONFIGURATION PRIORITY (highest to lowest):
+# 1. Environment variables (.env file)
+# 2. Environment-specific config (config.production.yaml, config.staging.yaml, etc.)
+# 3. This base configuration file (config.yaml) - YOU ARE HERE
+#
+# 🔧 Environment variables can override any setting below
+# 📝 See .env.example for common overrides
+# 🌍 See config.{environment}.yaml for environment-specific defaults
+#
+# ===========================================
+
+app:
+  name: "UYou API Starter API"                  # Override with APP_NAME
+  version: "1.0.0"                  # Override with APP_VERSION
+  environment: "development"        # Override with APP_ENVIRONMENT
+  debug: true                       # Override with APP_DEBUG
+
+database:
+  host: "db"                        # Override with DATABASE_HOST
+  port: 5432                        # Override with DATABASE_PORT  
+  user: "postgres"                  # Override with DATABASE_USER
+  password: ""                      # Override with DATABASE_PASSWORD (recommended)
+  name: "uyou_api"                      # Override with DATABASE_NAME
+  sslmode: "disable"                # Override with DATABASE_SSLMODE
+
+jwt:
+  access_token_ttl: "15m"           # Override with JWT_ACCESS_TOKEN_TTL
+  refresh_token_ttl: "168h"         # Override with JWT_REFRESH_TOKEN_TTL
+  ttlhours: 24                      # Deprecated: use access_token_ttl instead
+
+server:
+  port: "8080"                      # Override with SERVER_PORT
+  readtimeout: 10                   # Override with SERVER_READTIMEOUT (seconds)
+  writetimeout: 10                  # Override with SERVER_WRITETIMEOUT (seconds)
+  idletimeout: 120                  # Override with SERVER_IDLETIMEOUT (seconds)
+  shutdowntimeout: 30               # Override with SERVER_SHUTDOWNTIMEOUT (seconds)
+  maxheaderbytes: 1048576           # Override with SERVER_MAXHEADERBYTES (1MB default)
+
+logging:
+  level: "info"                     # Override with LOGGING_LEVEL (debug|info|warn|error)
+
+ratelimit:
+  enabled: true                     # Override with RATELIMIT_ENABLED
+  requests: 100                     # Override with RATELIMIT_REQUESTS
+  window: "1m"                      # Override with RATELIMIT_WINDOW
+
+migrations:
+  directory: "./migrations"         # Override with MIGRATIONS_DIRECTORY
+  timeout: 600                      # Override with MIGRATIONS_TIMEOUT (seconds)
+  locktimeout: 30                   # Override with MIGRATIONS_LOCKTIMEOUT (seconds)
+
+health:
+  timeout: 5                        # Override with HEALTH_TIMEOUT (seconds)
+  database_check_enabled: true      # Override with HEALTH_DATABASE_CHECK_ENABLED
+# MongoDB 配置
+mongodb:
+  enabled: false                    # Override with MONGODB_ENABLED
+  uri: "mongodb://localhost:27017"  # Override with MONGODB_URI
+  database: "uyou_api"              # Override with MONGODB_DATABASE
+  max_pool_size: 100                # Override with MONGODB_MAX_POOL_SIZE
+  min_pool_size: 10                 # Override with MONGODB_MIN_POOL_SIZE
+  connect_timeout: 10               # Override with MONGODB_CONNECT_TIMEOUT (seconds)
+
+# Redis 配置
+redis:
+  enabled: false                    # Override with REDIS_ENABLED
+  host: "localhost"                 # Override with REDIS_HOST
+  port: 6379                        # Override with REDIS_PORT
+  password: ""                      # Override with REDIS_PASSWORD
+  db: 0                             # Override with REDIS_DB
+  dial_timeout: 5                   # Override with REDIS_DIAL_TIMEOUT (seconds)
+  read_timeout: 3                   # Override with REDIS_READ_TIMEOUT (seconds)
+  write_timeout: 3                  # Override with REDIS_WRITE_TIMEOUT (seconds)
+  pool_size: 10                     # Override with REDIS_POOL_SIZE
+  min_idle_conns: 5                 # Override with REDIS_MIN_IDLE_CONNS
+
+# RabbitMQ 配置
+rabbitmq:
+  enabled: false                    # Override with RABBITMQ_ENABLED
+  url: "amqp://guest:guest@localhost:5672/"  # Override with RABBITMQ_URL
+  exchange: "uyou_events"           # Override with RABBITMQ_EXCHANGE
+  exchange_type: "topic"            # Override with RABBITMQ_EXCHANGE_TYPE
+  queue: "uyou_queue"               # Override with RABBITMQ_QUEUE
+  routing_key: "uyou.#"             # Override with RABBITMQ_ROUTING_KEY
+  prefetch_count: 10                # Override with RABBITMQ_PREFETCH_COUNT
+
+# gRPC 配置
+grpc:
+  enabled: false                    # Override with GRPC_ENABLED
+  port: "9090"                      # Override with GRPC_PORT
+  max_recv_msg_size: 4194304        # Override with GRPC_MAX_RECV_MSG_SIZE (4MB)
+  max_send_msg_size: 4194304        # Override with GRPC_MAX_SEND_MSG_SIZE (4MB)
+  connection_timeout: 10            # Override with GRPC_CONNECTION_TIMEOUT (seconds)
+
+# Prometheus 监控配置
+metrics:
+  enabled: false                    # Override with METRICS_ENABLED
+  port: "9091"                      # Override with METRICS_PORT
+  path: "/metrics"                  # Override with METRICS_PATH
