@@ -1,0 +1,461 @@
+# UYou Go API Starter - Cursor 开发规则
+
+**版本**: v2.0.0  
+**最后更新**: 2026-01-20  
+**目的**: 使用 UYou Go API Starter 构建微服务的开发指南
+
+---
+
+## 核心原则
+
+### 1. 清晰架构
+每个领域遵循：**Handler → Service → Repository** 三层架构
+- Handler 层不包含业务逻辑
+- Service 层不涉及 HTTP 相关内容
+- Repository 层仅与数据库交互
+
+### 2. Docker 优先开发
+开发者在宿主机运行 `make` 命令，Makefile 自动检测 Docker 并执行命令：
+```bash
+make up          # 启动容器
+make test        # 运行测试（在容器中执行）
+make lint        # 运行代码检查
+make lint-fix    # 自动修复代码问题
+make swag        # 生成 Swagger 文档
+make scheduler   # 运行定时任务调度器
+```
+
+### 3. 数据库迁移命名规范
+格式：`YYYYMMDDHHMMSS_动词_名词_表名`
+
+示例：
+- `20251025225126_create_users_table`
+- `20251028000000_create_refresh_tokens_table`
+- `20251210120000_add_avatar_to_users_table`
+
+命令：
+```bash
+make migrate-create NAME=create_todos_table
+make migrate-up
+make migrate-down
+make migrate-status
+```
+
+### 4. 版本检查
+不要硬编码版本号，使用以下命令检查：
+```bash
+go version                    # 检查 Go 版本
+docker --version              # 检查 Docker
+make exec-db                  # 进入数据库容器
+psql --version                # 检查 PostgreSQL
+```
+
+---
+
+## 领域结构
+
+```
+internal/<domain>/
+├── model.go       # GORM 模型
+├── dto.go         # API 契约（请求/响应）
+├── repository.go  # 数据库层
+├── service.go     # 业务逻辑
+├── handler.go     # HTTP 处理器（Gin）
+└── *_test.go      # 测试
+```
+
+**示例**：参考 `internal/user/` 获取完整的实现示例。
+
+---
+
+## 添加新实体
+
+1. **创建目录**：`mkdir -p internal/<domain>`
+2. **定义模型**：使用 GORM 标签
+3. **创建 DTO**：用于请求/响应验证
+4. **实现 Repository**：接口和方法
+5. **实现 Service**：业务逻辑
+6. **创建 Handler**：包含 Swagger 注解
+7. **生成迁移**：`make migrate-create NAME=create_<table>_table`
+8. **注册路由**：在 `internal/server/router.go` 中
+9. **编写测试**：覆盖所有层
+10. **运行**：`make migrate-up && make test && make lint && make swag`
+
+---
+
+## 认证与授权
+
+**获取当前用户信息**：
+```go
+import "github.com/uyou/uyou-go-api-starter/internal/contextutil"
+
+userID := contextutil.GetUserID(c)
+userEmail := contextutil.GetEmail(c)
+userName := contextutil.GetUserName(c)
+userRoles := contextutil.GetRoles(c)
+isAdmin := contextutil.IsAdmin(c)
+hasRole := contextutil.HasRole(c, "moderator")
+```
+
+**保护路由**：
+```go
+import "github.com/uyou/uyou-go-api-starter/internal/middleware"
+
+// 仅管理员可访问
+v1.Use(middleware.RequireAdmin()).
+   POST("/admin/users", handler.CreateUser)
+
+// 需要特定角色
+v1.Use(middleware.RequireRole("admin")).
+   POST("/admin/reports", handler.CreateReport)
+```
+
+---
+
+## 错误处理
+
+```go
+import (
+    "errors"
+    apiErrors "github.com/uyou/uyou-go-api-starter/internal/errors"
+)
+
+// 验证错误
+if err := c.ShouldBindJSON(&req); err != nil {
+    _ = c.Error(apiErrors.FromGinValidation(err))
+    return
+}
+
+// 服务错误 - 先检查特定错误
+result, err := h.service.GetResource(ctx, id)
+if err != nil {
+    if errors.Is(err, ErrNotFound) {
+        _ = c.Error(apiErrors.NotFound("资源未找到"))
+        return
+    }
+    if errors.Is(err, ErrUnauthorized) {
+        _ = c.Error(apiErrors.Unauthorized("需要身份验证"))
+        return
+    }
+    _ = c.Error(apiErrors.InternalServerError(err))
+    return
+}
+
+c.JSON(http.StatusOK, apiErrors.Success(result))
+```
+
+---
+
+## 测试
+
+**表驱动测试**：
+```go
+tests := []struct {
+    name        string
+    input       interface{}
+    setupMocks  func(*Mock)
+    expectError bool
+    errorType   error
+}{
+    {name: "成功", input: validInput, setupMocks: func(m *Mock) {...}},
+    {name: "验证错误", input: invalidInput, expectError: true},
+}
+
+for _, tt := range tests {
+    t.Run(tt.name, func(t *testing.T) {
+        // 测试实现
+    })
+}
+```
+
+**命令**：
+```bash
+make test              # 运行所有测试
+make test-coverage     # 生成覆盖率报告
+make test-verbose      # 详细输出
+```
+
+---
+
+## Swagger 文档
+
+**注解**：
+```go
+// @Summary 创建待办事项
+// @Description 创建一个新的待办事项
+// @Tags todos
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body CreateTodoRequest true "待办事项数据"
+// @Success 201 {object} errors.Response{success=bool,data=TodoResponse}
+// @Failure 400 {object} errors.Response{success=bool,error=errors.ErrorInfo} "验证错误"
+// @Router /api/v1/todos [post]
+func (h *Handler) CreateTodo(c *gin.Context) {...}
+```
+
+**更新文档**：`make swag`
+
+---
+
+## 定时任务
+
+**创建任务**：
+```go
+// internal/scheduler/tasks/my_task.go
+package tasks
+
+import (
+    "context"
+    "log/slog"
+)
+
+type MyTask struct {
+    logger *slog.Logger
+}
+
+func NewMyTask(logger *slog.Logger) *MyTask {
+    return &MyTask{logger: logger}
+}
+
+func (t *MyTask) Name() string {
+    return "my_custom_task"
+}
+
+func (t *MyTask) Run(ctx context.Context) error {
+    t.logger.Info("执行自定义任务")
+    // 实现业务逻辑
+    return nil
+}
+```
+
+**注册任务**：
+在 `cmd/scheduler/main.go` 中添加：
+```go
+{
+    Spec: "0 */1 * * * *",  // 每分钟执行
+    Task: tasks.NewMyTask(logger),
+}
+```
+
+**运行调度器**：
+```bash
+make scheduler
+```
+
+**Cron 表达式格式**（6 字段，支持秒级）：
+```
+秒 分 时 日 月 周
+
+示例：
+- "0 */1 * * * *"   每分钟执行
+- "0 0 */1 * * *"   每小时执行
+- "0 0 8 * * *"     每天 8:00 执行
+- "0 0 2 * * *"     每天凌晨 2:00 执行
+```
+
+---
+
+## 微服务功能
+
+### Redis 缓存
+```go
+import "github.com/uyou/uyou-go-api-starter/internal/redis"
+
+// 基础操作
+cache.Set(ctx, "key", "value", 1*time.Hour)
+value, err := cache.Get(ctx, "key")
+
+// 高级操作
+cache.Remember(ctx, "user:1", 1*time.Hour, func() (interface{}, error) {
+    return userService.GetUser(1)
+})
+
+// 分布式锁
+lock, err := cache.Lock(ctx, "resource:lock", 30*time.Second)
+defer lock.Release(ctx)
+```
+
+### MongoDB
+```go
+import "github.com/uyou/uyou-go-api-starter/internal/mongodb"
+
+// 基础操作
+repo := mongodb.NewBaseRepository[User](db, "users")
+user, err := repo.FindByID(ctx, id)
+users, total, err := repo.FindWithPagination(ctx, filter, page, pageSize)
+
+// 事务
+err := repo.Transaction(ctx, func(sessCtx mongo.SessionContext) error {
+    // 执行多个操作
+    return nil
+})
+```
+
+### gRPC 服务间通信
+```go
+// 服务端实现
+// internal/grpc/server/user_server.go
+func (s *UserServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.UserResponse, error) {
+    user, err := s.userService.GetByID(ctx, req.UserId)
+    // ...
+}
+
+// 客户端调用
+client := grpcclient.NewUserClient(conn)
+resp, err := client.GetUser(ctx, &pb.GetUserRequest{UserId: 1})
+```
+
+### RabbitMQ 事件发布订阅
+```go
+import "github.com/uyou/uyou-go-api-starter/internal/messaging"
+
+// 发布事件
+eventBus.PublishUserCreated(ctx, userID, email, username)
+
+// 订阅事件
+eventBus.SubscribeUserCreated(func(event events.UserCreatedEvent) error {
+    // 处理事件
+    return nil
+})
+```
+
+### Prometheus 监控
+```go
+import "github.com/uyou/uyou-go-api-starter/internal/metrics"
+
+// 记录指标
+metrics.RecordHTTPRequest("POST", "/api/v1/users", 200, 0.123)
+metrics.RecordDatabaseQuery("users", "SELECT", 0.045, nil)
+metrics.RecordCacheOperation("GET", true, 0.001)
+```
+
+---
+
+## 提交前工作流
+
+```bash
+make lint-fix    # 自动修复问题
+make lint        # 检查剩余问题
+make test        # 运行测试
+make swag        # 更新 Swagger（如果 API 有变化）
+```
+
+---
+
+## 开箱即用功能
+
+UYou Go API Starter 包含：
+- ✅ JWT 认证（含刷新令牌）
+- ✅ RBAC 角色权限控制
+- ✅ 数据库迁移（golang-migrate）
+- ✅ 健康检查（`/health`, `/live`, `/ready`）
+- ✅ 速率限制（令牌桶算法）
+- ✅ 结构化日志（JSON 格式）
+- ✅ 标准化 API 响应
+- ✅ 错误处理
+- ✅ 优雅关闭
+- ✅ Swagger/OpenAPI 文档
+- ✅ Context 辅助函数
+- ✅ Redis 缓存支持
+- ✅ MongoDB 支持
+- ✅ gRPC 服务间通信
+- ✅ RabbitMQ 消息队列
+- ✅ Prometheus 监控
+- ✅ 定时任务调度器
+
+---
+
+## 配置
+
+**配置文件**：`configs/config.yaml` + 环境变量覆盖
+**环境变量**：`DATABASE_PASSWORD`, `JWT_SECRET`, `APP_ENVIRONMENT`
+
+**数据库选择**：
+```bash
+make setup-db  # 交互式选择数据库（PostgreSQL/MongoDB/Redis）
+```
+
+---
+
+## 快速参考
+
+| 任务 | 命令 |
+|------|------|
+| 启动开发环境 | `make up` |
+| 运行测试 | `make test` |
+| 代码检查 | `make lint` |
+| 修复代码问题 | `make lint-fix` |
+| 创建迁移 | `make migrate-create NAME=<name>` |
+| 应用迁移 | `make migrate-up` |
+| 更新 Swagger | `make swag` |
+| 查看日志 | `make logs` |
+| 进入应用容器 | `make exec` |
+| 进入数据库容器 | `make exec-db` |
+| 清理并重启 | `make down && make up` |
+| 健康检查 | `curl localhost:8080/health` |
+| 运行定时任务 | `make scheduler` |
+| 配置数据库 | `make setup-db` |
+
+---
+
+## Cursor 使用技巧
+
+- **参考现有代码**：查看 `internal/user/` 获取模式示例
+- **遵循清晰架构**：Handler → Service → Repository
+- **使用 context 辅助函数**：`contextutil.GetUserID(c)` 获取认证信息
+- **最少注释**：代码自解释，注释说明"为什么"而不是"是什么"
+- **测试覆盖率**：保持 85% 以上覆盖率
+- **查看 Makefile**：所有命令在 `make help` 中
+- **阅读文档**：查看项目根目录下的 MD 文档
+
+---
+
+## 代码风格
+
+### 命名规范
+- **包名**：小写，单数形式（`user` 而不是 `users`）
+- **文件名**：小写下划线（`user_service.go`）
+- **接口**：以 `er` 结尾（`UserRepository`, `EmailSender`）
+- **结构体**：大驼峰（`UserService`）
+- **方法/函数**：大驼峰（公开）或小驼峰（私有）
+- **常量**：大驼峰或全大写下划线
+
+### 注释规范
+- 公开的函数、方法、类型必须有注释
+- 注释以类型/函数名开头
+- 使用中文注释
+- 复杂逻辑添加行内注释说明原因
+
+### 错误处理
+- 优先使用 `errors.Is()` 和 `errors.As()` 检查错误
+- 不要忽略错误，至少记录日志
+- 返回有意义的错误信息
+- 使用 `fmt.Errorf()` 包装错误添加上下文
+
+---
+
+## 常见任务示例
+
+### 添加新的 API 端点
+1. 在对应的 `handler.go` 中添加方法
+2. 添加 Swagger 注解
+3. 在 `router.go` 中注册路由
+4. 运行 `make swag` 更新文档
+5. 编写测试
+
+### 添加新的数据库表
+1. 创建迁移：`make migrate-create NAME=create_<table>_table`
+2. 编辑迁移文件（up 和 down）
+3. 应用迁移：`make migrate-up`
+4. 在 `model.go` 中定义 GORM 模型
+
+### 添加新的定时任务
+1. 在 `internal/scheduler/tasks/` 创建任务文件
+2. 实现 `Task` 接口（`Name()` 和 `Run()`）
+3. 在 `cmd/scheduler/main.go` 中注册任务
+4. 运行 `make scheduler` 测试
+
+---
+
+**仓库**：https://github.com/yeegeek/uyou-go-api-starter
