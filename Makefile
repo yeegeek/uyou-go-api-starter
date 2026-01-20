@@ -435,6 +435,22 @@ setup-db:
 	@chmod +x scripts/setup-database.sh
 	@./scripts/setup-database.sh
 
+## scheduler: Run scheduler service
+scheduler:
+ifdef CONTAINER_RUNNING
+	@echo "$(ENV_MSG)"
+	@$(EXEC_CMD) go run cmd/scheduler/main.go
+else
+	@if command -v go >/dev/null 2>&1; then \
+		echo "$(ENV_MSG)"; \
+		go run cmd/scheduler/main.go; \
+	else \
+		echo "❌ Error: Docker container not running and Go not installed"; \
+		echo "Please run: make up"; \
+		exit 1; \
+	fi
+endif
+
 ## check-env: Check if required environment variables are set
 check-env:
 	@echo "🔍 Checking required environment variables..."

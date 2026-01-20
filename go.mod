@@ -85,9 +85,10 @@ require (
 )
 
 require (
-github.com/redis/go-redis/v9 v9.7.0
-go.mongodb.org/mongo-driver v1.17.1
-github.com/rabbitmq/amqp091-go v1.10.0
-google.golang.org/grpc v1.69.4
-github.com/prometheus/client_golang v1.20.5
+	github.com/redis/go-redis/v9 v9.7.0
+	go.mongodb.org/mongo-driver v1.17.1
+	github.com/rabbitmq/amqp091-go v1.10.0
+	google.golang.org/grpc v1.69.4
+	github.com/prometheus/client_golang v1.20.5
+	github.com/robfig/cron/v3 v3.0.1
 )

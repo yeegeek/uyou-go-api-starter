@@ -101,3 +101,9 @@ metrics:
   enabled: false                    # Override with METRICS_ENABLED
   port: "9091"                      # Override with METRICS_PORT
   path: "/metrics"                  # Override with METRICS_PATH
+
+# 定时任务配置
+scheduler:
+  enabled: true
+  timezone: "Asia/Shanghai"
+

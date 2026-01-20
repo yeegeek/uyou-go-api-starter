@@ -325,3 +325,26 @@ docker-compose -f docker-compose.prod.yml up -d
 ## 版权信息
 
 Copyright (c) 2026 UYou Team
+
+
+## 定时任务
+
+项目集成了 `robfig/cron` 定时任务调度器，可以方便地管理和执行周期性任务。
+
+### 运行调度器
+
+```bash
+# 独立运行定时任务调度器
+make scheduler
+```
+
+### 添加新任务
+
+1. 在 `internal/scheduler/tasks/` 目录下创建新的任务文件，实现 `scheduler.Task` 接口。
+2. 在 `cmd/scheduler/main.go` 中注册新任务和对应的 cron 表达式。
+
+### 示例任务
+
+- **Hello World**: 每分钟执行一次，输出日志。
+- **清理任务**: 每小时执行一次，用于清理过期数据。
+- **统计任务**: 每天凌晨 2 点执行，用于生成统计报表。

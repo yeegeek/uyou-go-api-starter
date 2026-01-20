@@ -26,6 +26,13 @@ type Config struct {
 	RabbitMQ   RabbitMQConfig   `mapstructure:"rabbitmq" yaml:"rabbitmq"`
 	GRPC       GRPCConfig       `mapstructure:"grpc" yaml:"grpc"`
 	Metrics    MetricsConfig    `mapstructure:"metrics" yaml:"metrics"`
+	Scheduler  SchedulerConfig  `mapstructure:"scheduler" yaml:"scheduler"`
+}
+
+// SchedulerConfig 定时任务配置
+type SchedulerConfig struct {
+	Enabled  bool   `mapstructure:"enabled" yaml:"enabled"`
+	Timezone string `mapstructure:"timezone" yaml:"timezone"`
 }
 
 type AppConfig struct {
