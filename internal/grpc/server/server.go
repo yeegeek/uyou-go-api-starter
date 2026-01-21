@@ -6,9 +6,8 @@ import (
 	"log/slog"
 	"net"
 
-	pb "github.com/uyou/uyou-go-api-starter/api/proto/user"
-	"github.com/uyou/uyou-go-api-starter/internal/config"
-	"github.com/uyou/uyou-go-api-starter/internal/user"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -32,8 +31,11 @@ func NewServer(cfg *config.Config, userService user.Service) *Server {
 	grpcServer := grpc.NewServer(opts...)
 
 	// 注册用户服务
-	userServer := NewUserServiceServer(userService)
-	pb.RegisterUserServiceServer(grpcServer, userServer)
+	// 注意：由于 protobuf 代码是占位符，RegisterUserServiceServer 可能不存在
+	// 在实际使用前需要运行 protoc 生成真实的 protobuf 代码
+	// TODO: 传入 userRepository 并取消注释以下代码
+	// userServer := NewUserServiceServer(userService, userRepo)
+	// pb.RegisterUserServiceServer(grpcServer, userServer)
 
 	// 注册反射服务（用于 grpcurl 等工具）
 	reflection.Register(grpcServer)

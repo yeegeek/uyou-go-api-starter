@@ -12,13 +12,13 @@ import (
 
 	"gorm.io/gorm"
 
-	_ "github.com/uyou/uyou-go-api-starter/api/docs"
-	"github.com/uyou/uyou-go-api-starter/internal/auth"
-	"github.com/uyou/uyou-go-api-starter/internal/config"
-	"github.com/uyou/uyou-go-api-starter/internal/db"
-	"github.com/uyou/uyou-go-api-starter/internal/migrate"
-	"github.com/uyou/uyou-go-api-starter/internal/server"
-	"github.com/uyou/uyou-go-api-starter/internal/user"
+	_ "github.com/yeegeek/uyou-go-api-starter/api/docs"
+	"github.com/yeegeek/uyou-go-api-starter/internal/auth"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/db"
+	"github.com/yeegeek/uyou-go-api-starter/internal/migrate"
+	"github.com/yeegeek/uyou-go-api-starter/internal/server"
+	"github.com/yeegeek/uyou-go-api-starter/internal/user"
 )
 
 // @title Go REST API Boilerplate
@@ -80,7 +80,7 @@ func run() error {
 
 	authService := auth.NewServiceWithRepo(&cfg.JWT, database)
 	userRepo := user.NewRepository(database)
-	userService := user.NewService(userRepo)
+	userService := user.NewService(userRepo, &cfg.Security)
 	userHandler := user.NewHandler(userService, authService)
 
 	router := server.SetupRouter(userHandler, authService, cfg, database)

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/uyou/uyou-go-api-starter/internal/user"
+	"github.com/yeegeek/uyou-go-api-starter/internal/user"
 )
 
 type MockService struct {

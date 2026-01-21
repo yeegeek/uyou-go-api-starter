@@ -8,23 +8,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
 
-	"github.com/uyou/uyou-go-api-starter/internal/config"
-)
-
-// HealthStatus 健康状态
-type HealthStatus string
-
-const (
-	// StatusHealthy 健康
-	StatusHealthy HealthStatus = "healthy"
-	// StatusDegraded 降级
-	StatusDegraded HealthStatus = "degraded"
-	// StatusUnhealthy 不健康
-	StatusUnhealthy HealthStatus = "unhealthy"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
 )
 
 // ComponentCheck 组件检查结果

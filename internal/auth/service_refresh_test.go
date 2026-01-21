@@ -11,7 +11,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"github.com/uyou/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
 )
 
 // testUser is a minimal user struct for testing

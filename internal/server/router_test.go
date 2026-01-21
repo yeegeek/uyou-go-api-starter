@@ -10,9 +10,9 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"github.com/uyou/uyou-go-api-starter/internal/auth"
-	"github.com/uyou/uyou-go-api-starter/internal/config"
-	"github.com/uyou/uyou-go-api-starter/internal/user"
+	"github.com/yeegeek/uyou-go-api-starter/internal/auth"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/user"
 )
 
 func TestSetupRouter_HealthEndpoint(t *testing.T) {

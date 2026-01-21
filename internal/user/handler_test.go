@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/uyou/uyou-go-api-starter/internal/auth"
-	apiErrors "github.com/uyou/uyou-go-api-starter/internal/errors"
+	"github.com/yeegeek/uyou-go-api-starter/internal/auth"
+	apiErrors "github.com/yeegeek/uyou-go-api-starter/internal/errors"
 )
 
 // MockAuthService is a mock implementation of the auth service

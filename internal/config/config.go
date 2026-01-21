@@ -121,6 +121,8 @@ type RedisConfig struct {
 }
 
 // RabbitMQConfig RabbitMQ 消息队列配置
+// 注意：所有微服务连接到同一个 RabbitMQ 实例
+// 发布和订阅行为由代码逻辑控制，不需要配置限制
 type RabbitMQConfig struct {
 	Enabled       bool   `mapstructure:"enabled" yaml:"enabled"`
 	URL           string `mapstructure:"url" yaml:"url"`
@@ -263,6 +265,26 @@ func bindEnvVariables(v *viper.Viper) {
 		"migrations.locktimeout":        "MIGRATIONS_LOCKTIMEOUT",
 		"health.timeout":                "HEALTH_TIMEOUT",
 		"health.database_check_enabled": "HEALTH_DATABASE_CHECK_ENABLED",
+
+		// MongoDB
+		"mongodb.uri":             "MONGODB_URI",
+		"mongodb.database":        "MONGODB_DATABASE",
+
+		// Redis
+		"redis.host":           "REDIS_HOST",
+		"redis.port":           "REDIS_PORT",
+		"redis.password":       "REDIS_PASSWORD",
+	
+		// RabbitMQ
+		"rabbitmq.url":            "RABBITMQ_URL",
+
+		// gRPC
+		"grpc.port":               "GRPC_PORT",
+
+		// Metrics
+		"metrics.port":    "METRICS_PORT",
+
+	
 	}
 	for key, env := range envBindings {
 		_ = v.BindEnv(key, env)

@@ -87,7 +87,7 @@ internal/<domain>/
 
 **获取当前用户信息**：
 ```go
-import "github.com/uyou/uyou-go-api-starter/internal/contextutil"
+import "github.com/yeegeek/uyou-go-api-starter/internal/contextutil"
 
 userID := contextutil.GetUserID(c)
 userEmail := contextutil.GetEmail(c)
@@ -99,7 +99,7 @@ hasRole := contextutil.HasRole(c, "moderator")
 
 **保护路由**：
 ```go
-import "github.com/uyou/uyou-go-api-starter/internal/middleware"
+import "github.com/yeegeek/uyou-go-api-starter/internal/middleware"
 
 // 仅管理员可访问
 v1.Use(middleware.RequireAdmin()).
@@ -117,7 +117,7 @@ v1.Use(middleware.RequireRole("admin")).
 ```go
 import (
     "errors"
-    apiErrors "github.com/uyou/uyou-go-api-starter/internal/errors"
+    apiErrors "github.com/yeegeek/uyou-go-api-starter/internal/errors"
 )
 
 // 验证错误
@@ -260,7 +260,7 @@ make scheduler
 
 ### Redis 缓存
 ```go
-import "github.com/uyou/uyou-go-api-starter/internal/redis"
+import "github.com/yeegeek/uyou-go-api-starter/internal/redis"
 
 // 基础操作
 cache.Set(ctx, "key", "value", 1*time.Hour)
@@ -278,7 +278,7 @@ defer lock.Release(ctx)
 
 ### MongoDB
 ```go
-import "github.com/uyou/uyou-go-api-starter/internal/mongodb"
+import "github.com/yeegeek/uyou-go-api-starter/internal/mongodb"
 
 // 基础操作
 repo := mongodb.NewBaseRepository[User](db, "users")
@@ -308,7 +308,7 @@ resp, err := client.GetUser(ctx, &pb.GetUserRequest{UserId: 1})
 
 ### RabbitMQ 事件发布订阅
 ```go
-import "github.com/uyou/uyou-go-api-starter/internal/messaging"
+import "github.com/yeegeek/uyou-go-api-starter/internal/messaging"
 
 // 发布事件
 eventBus.PublishUserCreated(ctx, userID, email, username)
@@ -322,7 +322,7 @@ eventBus.SubscribeUserCreated(func(event events.UserCreatedEvent) error {
 
 ### Prometheus 监控
 ```go
-import "github.com/uyou/uyou-go-api-starter/internal/metrics"
+import "github.com/yeegeek/uyou-go-api-starter/internal/metrics"
 
 // 记录指标
 metrics.RecordHTTPRequest("POST", "/api/v1/users", 200, 0.123)

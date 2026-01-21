@@ -82,7 +82,7 @@ openssl rand -base64 32
 
 ```bash
 # 克隆仓库
-git clone https://github.com/uyou/uyou-go-api-starter.git
+git clone https://github.com/yeegeek/uyou-go-api-starter.git
 cd uyou-go-api-starter
 
 # 配置数据库并启动服务
@@ -151,19 +151,22 @@ make promote-admin ID=1
 
 ```bash
 # 启动开发环境（带热重载）
-make dev
+make up
 
 # 运行测试
 make test
 
 # 查看测试覆盖率
-make coverage
-
-# 代码格式化
-make fmt
+make test-coverage
 
 # 代码检查
 make lint
+
+# 自动修复代码问题
+make lint-fix
+
+# 生成 Swagger 文档
+make swag
 ```
 
 ### 数据库迁移
@@ -186,16 +189,19 @@ make migrate-status
 
 ```bash
 # 构建镜像
-make docker-build
+make build
 
 # 启动服务
-make docker-up
+make up
 
 # 停止服务
-make docker-down
+make down
+
+# 重启服务
+make restart
 
 # 查看日志
-make docker-logs
+make logs
 ```
 
 ## API 端点

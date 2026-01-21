@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/uyou/uyou-go-api-starter/internal/auth"
+	"github.com/yeegeek/uyou-go-api-starter/internal/auth"
 )
 
 func TestGetUser(t *testing.T) {

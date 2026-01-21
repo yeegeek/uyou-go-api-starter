@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/time/rate"
 
-	apiErrors "github.com/uyou/uyou-go-api-starter/internal/errors"
+	apiErrors "github.com/yeegeek/uyou-go-api-starter/internal/errors"
 )
 
 func init() {

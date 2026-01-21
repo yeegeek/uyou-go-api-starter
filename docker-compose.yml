@@ -6,10 +6,12 @@ services:
     environment:
       POSTGRES_USER: ${DATABASE_USER:-postgres}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
-      POSTGRES_DB: ${DATABASE_NAME:-grab}
+      POSTGRES_DB: ${DATABASE_NAME:-uyou_api}
     # No ports exposed to host - only accessible within Docker network
     expose:
       - "${DATABASE_PORT:-5432}"
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -20,6 +22,71 @@ services:
       timeout: ${HEALTH_CHECK_TIMEOUT:-5s}
       retries: ${HEALTH_CHECK_RETRIES:-5}
       start_period: ${HEALTH_CHECK_START_PERIOD:-15s}
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    container_name: ${MONGODB_CONTAINER_NAME:-go_api_mongodb}
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE:-uyou_api}
+    expose:
+      - "${MONGODB_PORT:-27017}"
+    ports:
+      - "${MONGODB_PORT:-27017}:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - go_api_network
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --eval 'db.adminCommand(\"ping\")'"]
+      interval: ${HEALTH_CHECK_INTERVAL:-15s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-5s}
+      retries: ${HEALTH_CHECK_RETRIES:-5}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-15s}
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: ${REDIS_CONTAINER_NAME:-go_api_redis}
+    expose:
+      - "${REDIS_PORT:-6379}"
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - go_api_network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: ${HEALTH_CHECK_INTERVAL:-15s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-5s}
+      retries: ${HEALTH_CHECK_RETRIES:-5}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-10s}
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: ${RABBITMQ_CONTAINER_NAME:-go_api_rabbitmq}
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    expose:
+      - "${RABBITMQ_PORT:-5672}"   # AMQP port
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}"  # Management UI port
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"     # AMQP port (host -> container)
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"   # Management UI (host -> container)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - go_api_network
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: ${HEALTH_CHECK_INTERVAL:-15s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-5s}
+      retries: ${HEALTH_CHECK_RETRIES:-5}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-30s}
+    restart: unless-stopped
 
   app:
     build:
@@ -41,6 +108,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - go_api_network
     healthcheck:
@@ -56,3 +129,6 @@ networks:
 
 volumes:
   postgres_data:
+  mongodb_data:
+  redis_data:
+  rabbitmq_data:

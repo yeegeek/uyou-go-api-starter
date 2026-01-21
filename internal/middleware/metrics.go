@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/uyou/uyou-go-api-starter/internal/metrics"
+	"github.com/yeegeek/uyou-go-api-starter/internal/metrics"
 )
 
 // MetricsMiddleware Prometheus 监控中间件

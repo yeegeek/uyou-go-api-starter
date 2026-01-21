@@ -5,11 +5,12 @@ package scheduler
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/robfig/cron/v3"
-	"github.com/uyou/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
 )
 
 // Task 定义定时任务接口
@@ -28,13 +29,23 @@ type Scheduler struct {
 	tasks  map[string]Task
 }
 
+// slogLoggerAdapter 适配 slog.Logger 到 cron.Logger 接口
+type slogLoggerAdapter struct {
+	logger *slog.Logger
+}
+
+func (a *slogLoggerAdapter) Printf(format string, args ...interface{}) {
+	a.logger.Info(fmt.Sprintf(format, args...))
+}
+
 // NewScheduler 创建新的调度器实例
 func NewScheduler(cfg *config.Config, logger *slog.Logger) *Scheduler {
 	// 创建 cron 实例，使用秒级精度
+	adapter := &slogLoggerAdapter{logger: logger}
 	c := cron.New(
 		cron.WithSeconds(),                                  // 支持秒级调度
 		cron.WithChain(cron.Recover(cron.DefaultLogger)),   // 自动恢复 panic
-		cron.WithLogger(cron.VerbosePrintfLogger(logger)),  // 使用自定义日志
+		cron.WithLogger(cron.VerbosePrintfLogger(adapter)), // 使用自定义日志适配器
 	)
 
 	return &Scheduler{

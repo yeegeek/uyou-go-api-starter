@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/uyou/uyou-go-api-starter/internal/config"
-	"github.com/uyou/uyou-go-api-starter/internal/redis"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/redis"
 )
 
 func TestRedisConnection(t *testing.T) {

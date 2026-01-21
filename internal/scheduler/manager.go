@@ -4,7 +4,7 @@ package scheduler
 import (
 	"log/slog"
 
-	"github.com/uyou/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
 )
 
 // Manager 任务管理器

@@ -3,7 +3,7 @@ package user
 import (
 	"testing"
 
-	"github.com/uyou/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
 )
 
 func TestPasswordValidator_Validate(t *testing.T) {

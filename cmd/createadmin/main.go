@@ -14,8 +14,8 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"github.com/uyou/uyou-go-api-starter/internal/config"
-	"github.com/uyou/uyou-go-api-starter/internal/user"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/user"
 )
 
 var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
@@ -104,7 +104,18 @@ func main() {
 	}
 
 	repo := user.NewRepository(db)
-	service := user.NewService(repo)
+	// 使用默认安全配置
+	securityCfg := &config.SecurityConfig{
+		BcryptCost:            12,
+		PasswordMinLength:     8,
+		PasswordRequireUppercase: true,
+		PasswordRequireLowercase: true,
+		PasswordRequireNumber:    true,
+		PasswordRequireSpecial:  true,
+		MaxLoginAttempts:        5,
+		LockoutDuration:         15,
+	}
+	service := user.NewService(repo, securityCfg)
 
 	ctx := context.Background()
 

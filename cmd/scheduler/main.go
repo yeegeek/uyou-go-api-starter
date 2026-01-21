@@ -2,15 +2,14 @@
 package main
 
 import (
-	"context"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/uyou/uyou-go-api-starter/internal/config"
-	"github.com/uyou/uyou-go-api-starter/internal/scheduler"
-	"github.com/uyou/uyou-go-api-starter/internal/scheduler/tasks"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/scheduler"
+	"github.com/yeegeek/uyou-go-api-starter/internal/scheduler/tasks"
 )
 
 func main() {
@@ -92,8 +91,8 @@ func main() {
 //
 // ```go
 // import (
-//     "github.com/uyou/uyou-go-api-starter/internal/scheduler"
-//     "github.com/uyou/uyou-go-api-starter/internal/scheduler/tasks"
+//     "github.com/yeegeek/uyou-go-api-starter/internal/scheduler"
+//     "github.com/yeegeek/uyou-go-api-starter/internal/scheduler/tasks"
 // )
 //
 // func main() {

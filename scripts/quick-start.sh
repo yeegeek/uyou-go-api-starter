@@ -21,7 +21,7 @@ if ! command -v docker &> /dev/null; then
     echo "  https://docs.docker.com/get-docker/"
     echo ""
     echo "Or see manual setup instructions:"
-    echo "  https://github.com/uyou/uyou-go-api-starter/SETUP/"
+    echo "  https://github.com/yeegeek/uyou-go-api-starter/SETUP/"
     exit 1
 fi
 
@@ -104,6 +104,21 @@ echo ""
 echo "🔄 Running database migrations..."
 echo ""
 
+# Check for dirty migration state
+MIGRATION_OUTPUT=$(docker compose exec -T app go run cmd/migrate/main.go version 2>&1 || true)
+if echo "$MIGRATION_OUTPUT" | grep -q "dirty"; then
+    echo -e "${RED}❌ Database is in dirty migration state${NC}"
+    echo ""
+    echo "To fix this, run one of the following commands:"
+    echo "  1. Force clear dirty state: docker compose exec app go run cmd/migrate/main.go force <version>"
+    echo "  2. Or drop and recreate: docker compose down -v && docker compose up -d"
+    echo ""
+    echo "Current migration status:"
+    echo "$MIGRATION_OUTPUT"
+    echo ""
+    exit 1
+fi
+
 # Run migrations with retry mechanism (database might need a moment after health check)
 MAX_RETRIES=3
 RETRY_DELAY=3
@@ -111,10 +126,26 @@ RETRY_COUNT=0
 MIGRATION_SUCCESS=false
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    if docker compose exec -T app go run cmd/migrate/main.go up; then
+    MIGRATION_OUTPUT=$(docker compose exec -T app go run cmd/migrate/main.go up 2>&1)
+    MIGRATION_EXIT_CODE=$?
+    
+    if [ $MIGRATION_EXIT_CODE -eq 0 ]; then
         MIGRATION_SUCCESS=true
         break
     else
+        # Check if it's a dirty state error
+        if echo "$MIGRATION_OUTPUT" | grep -q "dirty"; then
+            echo -e "${RED}❌ Migration failed: Database is in dirty state${NC}"
+            echo ""
+            echo "To fix this, run:"
+            echo "  docker compose exec app go run cmd/migrate/main.go force <version>"
+            echo ""
+            echo "Or drop and recreate the database:"
+            echo "  docker compose down -v && docker compose up -d"
+            echo ""
+            exit 1
+        fi
+        
         RETRY_COUNT=$((RETRY_COUNT + 1))
         if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
             echo ""
@@ -165,5 +196,5 @@ echo "   • Create admin:       make create-admin"
 echo "   • Promote user:       make promote-admin ID=<user_id>"
 echo ""
 echo "📚 Documentation:"
-echo "   https://github.com/uyou/uyou-go-api-starter/"
+echo "   https://github.com/yeegeek/uyou-go-api-starter/"
 echo ""

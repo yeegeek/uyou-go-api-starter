@@ -35,14 +35,20 @@ func (e *BaseEvent) EventData() interface{} {
 
 // EventBus 事件总线
 type EventBus struct {
-	mq *RabbitMQ
+	mq MessageQueue
 }
 
-// NewEventBus 创建事件总线
-func NewEventBus(mq *RabbitMQ) *EventBus {
+// NewEventBus 创建事件总线（使用 MessageQueue 接口）
+func NewEventBus(mq MessageQueue) *EventBus {
 	return &EventBus{
 		mq: mq,
 	}
+}
+
+// NewEventBusWithRabbitMQ 使用 RabbitMQ 创建事件总线（向后兼容）
+// Deprecated: 使用 NewEventBus 代替
+func NewEventBusWithRabbitMQ(mq *RabbitMQ) *EventBus {
+	return NewEventBus(mq)
 }
 
 // Publish 发布事件
@@ -77,7 +83,9 @@ func (eb *EventBus) Publish(ctx context.Context, event Event) error {
 
 // Subscribe 订阅事件
 func (eb *EventBus) Subscribe(ctx context.Context, handler EventHandler) error {
-	return eb.mq.Consume(ctx, func(body []byte) error {
+	// 使用通配符主题订阅所有事件（RabbitMQ 中会忽略，其他实现可以使用）
+	topic := "event.#"
+	return eb.mq.Subscribe(ctx, topic, func(ctx context.Context, body []byte) error {
 		// 反序列化事件
 		var event BaseEvent
 		if err := json.Unmarshal(body, &event); err != nil {

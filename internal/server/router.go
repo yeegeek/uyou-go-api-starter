@@ -8,12 +8,12 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
 
-	"github.com/uyou/uyou-go-api-starter/internal/auth"
-	"github.com/uyou/uyou-go-api-starter/internal/config"
-	"github.com/uyou/uyou-go-api-starter/internal/errors"
-	"github.com/uyou/uyou-go-api-starter/internal/health"
-	"github.com/uyou/uyou-go-api-starter/internal/middleware"
-	"github.com/uyou/uyou-go-api-starter/internal/user"
+	"github.com/yeegeek/uyou-go-api-starter/internal/auth"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/errors"
+	"github.com/yeegeek/uyou-go-api-starter/internal/health"
+	"github.com/yeegeek/uyou-go-api-starter/internal/middleware"
+	"github.com/yeegeek/uyou-go-api-starter/internal/user"
 )
 
 // SetupRouter creates and configures the Gin router

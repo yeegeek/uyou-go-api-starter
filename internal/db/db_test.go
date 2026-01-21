@@ -1,14 +1,97 @@
 package db
 
 import (
+	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
-	"github.com/uyou/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
 )
+
+// discardWriter 是一个丢弃所有写入的 Writer，用于在测试中抑制日志输出
+type discardWriter struct{}
+
+func (d *discardWriter) Write(p []byte) (n int, err error) {
+	return len(p), nil
+}
+
+// newPostgresDBForTest 创建一个用于测试的 PostgreSQL 连接，使用 Silent logger 抑制预期错误的日志
+func newPostgresDBForTest(cfg Config) (*gorm.DB, error) {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
+		cfg.Host, cfg.User, cfg.Password, cfg.Name, cfg.Port, cfg.SSLMode)
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent), // 在测试中抑制日志
+		NowFunc: func() time.Time {
+			return time.Now().UTC()
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get database instance: %w", err)
+	}
+
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
+	return db, nil
+}
+
+// newPostgresDBFromDatabaseConfigForTest 创建一个用于测试的 PostgreSQL 连接，使用 Silent logger
+func newPostgresDBFromDatabaseConfigForTest(cfg config.DatabaseConfig) (*gorm.DB, error) {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
+		cfg.Host, cfg.User, cfg.Password, cfg.Name, cfg.Port, cfg.SSLMode)
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent), // 在测试中抑制日志
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to postgres database: %w", err)
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sql.DB from gorm DB: %w", err)
+	}
+
+	maxOpenConns := cfg.MaxOpenConns
+	if maxOpenConns == 0 {
+		maxOpenConns = 100
+	}
+	sqlDB.SetMaxOpenConns(maxOpenConns)
+
+	maxIdleConns := cfg.MaxIdleConns
+	if maxIdleConns == 0 {
+		maxIdleConns = 10
+	}
+	sqlDB.SetMaxIdleConns(maxIdleConns)
+
+	connMaxLifetime := time.Duration(cfg.ConnMaxLifetime) * time.Second
+	if connMaxLifetime == 0 {
+		connMaxLifetime = time.Hour
+	}
+	sqlDB.SetConnMaxLifetime(connMaxLifetime)
+
+	connMaxIdleTime := time.Duration(cfg.ConnMaxIdleTime) * time.Second
+	if connMaxIdleTime == 0 {
+		connMaxIdleTime = 10 * time.Minute
+	}
+	sqlDB.SetConnMaxIdleTime(connMaxIdleTime)
+
+	return db, nil
+}
 
 func TestNewSQLiteDB(t *testing.T) {
 	tests := []struct {
@@ -107,7 +190,15 @@ func TestNewPostgresDB(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			db, err := NewPostgresDB(tt.config)
+			// 在测试预期错误时，使用 Silent logger 抑制 GORM 的错误日志输出
+			var db *gorm.DB
+			var err error
+			if tt.wantErr {
+				db, err = newPostgresDBForTest(tt.config)
+			} else {
+				db, err = NewPostgresDB(tt.config)
+			}
+
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Nil(t, db)
@@ -170,7 +261,15 @@ func TestNewPostgresDBFromDatabaseConfig(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			db, err := NewPostgresDBFromDatabaseConfig(tt.config)
+			// 在测试预期错误时，使用 Silent logger 抑制 GORM 的错误日志输出
+			var db *gorm.DB
+			var err error
+			if tt.wantErr {
+				db, err = newPostgresDBFromDatabaseConfigForTest(tt.config)
+			} else {
+				db, err = NewPostgresDBFromDatabaseConfig(tt.config)
+			}
+
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Nil(t, db)

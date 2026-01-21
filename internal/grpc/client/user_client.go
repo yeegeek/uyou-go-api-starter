@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	pb "github.com/uyou/uyou-go-api-starter/api/proto/user"
+	pb "github.com/yeegeek/uyou-go-api-starter/api/proto/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

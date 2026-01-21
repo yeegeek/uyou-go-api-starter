@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/uyou/uyou-go-api-starter/internal/contextutil"
-	"github.com/uyou/uyou-go-api-starter/internal/errors"
+	"github.com/yeegeek/uyou-go-api-starter/internal/contextutil"
+	"github.com/yeegeek/uyou-go-api-starter/internal/errors"
 )
 
 // RequireRole returns a middleware that checks if the user has the specified role

@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/uyou/uyou-go-api-starter/internal/config"
-	"github.com/uyou/uyou-go-api-starter/internal/db"
-	"github.com/uyou/uyou-go-api-starter/internal/migrate"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/db"
+	"github.com/yeegeek/uyou-go-api-starter/internal/migrate"
 )
 
 func main() {

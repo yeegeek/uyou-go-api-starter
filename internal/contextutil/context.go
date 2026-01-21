@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/uyou/uyou-go-api-starter/internal/auth"
+	"github.com/yeegeek/uyou-go-api-starter/internal/auth"
 )
 
 // GetUser retrieves the authenticated user claims from context

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/uyou/uyou-go-api-starter/internal/redis"
+	"github.com/yeegeek/uyou-go-api-starter/internal/redis"
 )
 
 const (

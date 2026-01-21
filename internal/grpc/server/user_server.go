@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 
-	pb "github.com/uyou/uyou-go-api-starter/api/proto/user"
-	"github.com/uyou/uyou-go-api-starter/internal/user"
+	pb "github.com/yeegeek/uyou-go-api-starter/api/proto/user"
+	"github.com/yeegeek/uyou-go-api-starter/internal/user"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -15,12 +15,14 @@ import (
 type UserServiceServer struct {
 	pb.UnimplementedUserServiceServer
 	userService user.Service
+	userRepo    user.Repository
 }
 
 // NewUserServiceServer 创建用户服务 gRPC 服务器
-func NewUserServiceServer(userService user.Service) *UserServiceServer {
+func NewUserServiceServer(userService user.Service, userRepo user.Repository) *UserServiceServer {
 	return &UserServiceServer{
 		userService: userService,
+		userRepo:    userRepo,
 	}
 }
 
@@ -40,8 +42,8 @@ func (s *UserServiceServer) GetUser(ctx context.Context, req *pb.GetUserRequest)
 
 // GetUserByEmail 根据邮箱获取用户信息
 func (s *UserServiceServer) GetUserByEmail(ctx context.Context, req *pb.GetUserByEmailRequest) (*pb.GetUserResponse, error) {
-	// 调用用户服务
-	usr, err := s.userService.GetUserByEmail(ctx, req.Email)
+	// 通过 repository 获取用户
+	usr, err := s.userRepo.FindByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "user not found: %v", err)
 	}
@@ -64,8 +66,9 @@ func (s *UserServiceServer) ListUsers(ctx context.Context, req *pb.ListUsersRequ
 		pageSize = 10
 	}
 
-	// 调用用户服务
-	users, total, err := s.userService.ListUsers(ctx, page, pageSize)
+	// 调用用户服务（使用空的过滤参数）
+	filters := user.UserFilterParams{}
+	users, total, err := s.userService.ListUsers(ctx, filters, page, pageSize)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to list users: %v", err)
 	}

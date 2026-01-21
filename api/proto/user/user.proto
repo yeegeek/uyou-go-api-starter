@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package user;
 
-option go_package = "github.com/uyou/uyou-go-api-starter/api/proto/user";
+option go_package = "github.com/yeegeek/uyou-go-api-starter/api/proto/user";
 
 // UserService 用户服务 gRPC 接口
 service UserService {

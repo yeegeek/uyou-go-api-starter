@@ -9,11 +9,27 @@ import (
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
 )
+
+// newTestSecurityConfig 创建测试用的安全配置
+func newTestSecurityConfig() *config.SecurityConfig {
+	return &config.SecurityConfig{
+		BcryptCost:            12,
+		PasswordMinLength:     8,
+		PasswordRequireUppercase: true,
+		PasswordRequireLowercase: true,
+		PasswordRequireNumber:    true,
+		PasswordRequireSpecial:  true,
+		MaxLoginAttempts:        5,
+		LockoutDuration:         15,
+	}
+}
 
 func TestNewService(t *testing.T) {
 	mockRepo := &MockRepository{}
-	svc := NewService(mockRepo)
+	svc := NewService(mockRepo, newTestSecurityConfig())
 
 	assert.NotNil(t, svc)
 	assert.Implements(t, (*Service)(nil), svc)
@@ -31,7 +47,7 @@ func TestService_RegisterUser(t *testing.T) {
 			request: RegisterRequest{
 				Name:     "John Doe",
 				Email:    "john@example.com",
-				Password: "password123",
+				Password: "Password123!",
 			},
 			setupMock: func(m *MockRepository) {
 				m.On("FindByEmail", mock.Anything, "john@example.com").Return(nil, nil)
@@ -50,7 +66,7 @@ func TestService_RegisterUser(t *testing.T) {
 			request: RegisterRequest{
 				Name:     "John Doe",
 				Email:    "existing@example.com",
-				Password: "password123",
+				Password: "Password123!",
 			},
 			setupMock: func(m *MockRepository) {
 				existingUser := &User{ID: 1, Email: "existing@example.com"}
@@ -63,7 +79,7 @@ func TestService_RegisterUser(t *testing.T) {
 			request: RegisterRequest{
 				Name:     "John Doe",
 				Email:    "john@example.com",
-				Password: "password123",
+				Password: "Password123!",
 			},
 			setupMock: func(m *MockRepository) {
 				m.On("FindByEmail", mock.Anything, "john@example.com").Return(nil, errors.New("db error"))
@@ -75,7 +91,7 @@ func TestService_RegisterUser(t *testing.T) {
 			request: RegisterRequest{
 				Name:     "John Doe",
 				Email:    "john@example.com",
-				Password: "password123",
+				Password: "Password123!",
 			},
 			setupMock: func(m *MockRepository) {
 				m.On("FindByEmail", mock.Anything, "john@example.com").Return(nil, nil)
@@ -90,7 +106,7 @@ func TestService_RegisterUser(t *testing.T) {
 			mockRepo := &MockRepository{}
 			tt.setupMock(mockRepo)
 
-			service := NewService(mockRepo)
+			service := NewService(mockRepo, newTestSecurityConfig())
 			user, err := service.RegisterUser(context.Background(), tt.request)
 
 			if tt.expectedErr != nil {
@@ -111,7 +127,7 @@ func TestService_RegisterUser(t *testing.T) {
 }
 
 func TestService_AuthenticateUser(t *testing.T) {
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("Password123!"), bcrypt.DefaultCost)
 
 	tests := []struct {
 		name        string
@@ -123,7 +139,7 @@ func TestService_AuthenticateUser(t *testing.T) {
 			name: "successful authentication",
 			request: LoginRequest{
 				Email:    "john@example.com",
-				Password: "password123",
+				Password: "Password123!",
 			},
 			setupMock: func(m *MockRepository) {
 				user := &User{
@@ -139,7 +155,7 @@ func TestService_AuthenticateUser(t *testing.T) {
 			name: "user not found",
 			request: LoginRequest{
 				Email:    "notfound@example.com",
-				Password: "password123",
+				Password: "Password123!",
 			},
 			setupMock: func(m *MockRepository) {
 				m.On("FindByEmail", mock.Anything, "notfound@example.com").Return(nil, nil)
@@ -166,7 +182,7 @@ func TestService_AuthenticateUser(t *testing.T) {
 			name: "repository error",
 			request: LoginRequest{
 				Email:    "john@example.com",
-				Password: "password123",
+				Password: "Password123!",
 			},
 			setupMock: func(m *MockRepository) {
 				m.On("FindByEmail", mock.Anything, "john@example.com").Return(nil, errors.New("db error"))
@@ -180,7 +196,7 @@ func TestService_AuthenticateUser(t *testing.T) {
 			mockRepo := &MockRepository{}
 			tt.setupMock(mockRepo)
 
-			service := NewService(mockRepo)
+			service := NewService(mockRepo, newTestSecurityConfig())
 			user, err := service.AuthenticateUser(context.Background(), tt.request)
 
 			if tt.expectedErr != nil {
@@ -237,7 +253,7 @@ func TestService_GetUserByID(t *testing.T) {
 			mockRepo := &MockRepository{}
 			tt.setupMock(mockRepo)
 
-			service := NewService(mockRepo)
+			service := NewService(mockRepo, newTestSecurityConfig())
 			user, err := service.GetUserByID(context.Background(), tt.userID)
 
 			if tt.expectedErr != nil {
@@ -310,7 +326,7 @@ func TestService_UpdateUser(t *testing.T) {
 			mockRepo := &MockRepository{}
 			tt.setupMock(mockRepo)
 
-			service := NewService(mockRepo)
+			service := NewService(mockRepo, newTestSecurityConfig())
 			user, err := service.UpdateUser(context.Background(), tt.userID, tt.request)
 
 			if tt.expectedErr != nil {
@@ -371,7 +387,7 @@ func TestService_DeleteUser(t *testing.T) {
 			mockRepo := &MockRepository{}
 			tt.setupMock(mockRepo)
 
-			service := NewService(mockRepo)
+			service := NewService(mockRepo, newTestSecurityConfig())
 			err := service.DeleteUser(context.Background(), tt.userID)
 
 			if tt.expectedErr != nil {
@@ -391,8 +407,11 @@ func TestService_DeleteUser(t *testing.T) {
 }
 
 func TestHashPassword(t *testing.T) {
-	password := "testpassword123"
-	hashedPassword, err := hashPassword(password)
+	password := "TestPass123!"
+	mockRepo := &MockRepository{}
+	service := NewService(mockRepo, newTestSecurityConfig()).(*service)
+	
+	hashedPassword, err := service.hashPassword(password)
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, hashedPassword)
@@ -403,7 +422,7 @@ func TestHashPassword(t *testing.T) {
 }
 
 func TestVerifyPassword(t *testing.T) {
-	password := "testpassword123"
+	password := "TestPass123!"
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	t.Run("correct password", func(t *testing.T) {
@@ -550,7 +569,7 @@ func TestService_ListUsers(t *testing.T) {
 			mockRepo := new(MockRepository)
 			tt.setupMocks(mockRepo)
 
-			service := NewService(mockRepo)
+			service := NewService(mockRepo, newTestSecurityConfig())
 			users, total, err := service.ListUsers(context.Background(), tt.filters, tt.page, tt.perPage)
 
 			if tt.expectedErr != nil {
@@ -634,7 +653,7 @@ func TestService_PromoteToAdmin(t *testing.T) {
 			mockRepo := new(MockRepository)
 			tt.setupMocks(mockRepo)
 
-			service := NewService(mockRepo)
+			service := NewService(mockRepo, newTestSecurityConfig())
 			err := service.PromoteToAdmin(context.Background(), tt.userID)
 
 			if tt.expectedErr != nil {
@@ -663,7 +682,7 @@ func TestService_RegisterUser_ErrorPaths(t *testing.T) {
 			request: RegisterRequest{
 				Name:     "John Doe",
 				Email:    "john@example.com",
-				Password: "password123",
+				Password: "Password123!",
 			},
 			setupMock: func(m *MockRepository) {
 				m.On("FindByEmail", mock.Anything, "john@example.com").Return(nil, nil)
@@ -680,7 +699,7 @@ func TestService_RegisterUser_ErrorPaths(t *testing.T) {
 			request: RegisterRequest{
 				Name:     "John Doe",
 				Email:    "john@example.com",
-				Password: "password123",
+				Password: "Password123!",
 			},
 			setupMock: func(m *MockRepository) {
 				m.On("FindByEmail", mock.Anything, "john@example.com").Return(nil, nil)
@@ -698,7 +717,7 @@ func TestService_RegisterUser_ErrorPaths(t *testing.T) {
 			request: RegisterRequest{
 				Name:     "John Doe",
 				Email:    "john@example.com",
-				Password: "password123",
+				Password: "Password123!",
 			},
 			setupMock: func(m *MockRepository) {
 				m.On("FindByEmail", mock.Anything, "john@example.com").Return(nil, nil)
@@ -718,7 +737,7 @@ func TestService_RegisterUser_ErrorPaths(t *testing.T) {
 			mockRepo := &MockRepository{}
 			tt.setupMock(mockRepo)
 
-			service := NewService(mockRepo)
+			service := NewService(mockRepo, newTestSecurityConfig())
 			user, err := service.RegisterUser(context.Background(), tt.request)
 
 			assert.Error(t, err)
@@ -764,7 +783,7 @@ func TestService_ListUsers_PaginationErrors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRepo := &MockRepository{}
-			service := NewService(mockRepo)
+			service := NewService(mockRepo, newTestSecurityConfig())
 
 			users, total, err := service.ListUsers(context.Background(), tt.filters, tt.page, tt.perPage)
 
@@ -783,7 +802,7 @@ func TestService_ListUsers_RepositoryError(t *testing.T) {
 	filters := UserFilterParams{Sort: "created_at", Order: "desc"}
 	mockRepo.On("ListAllUsers", mock.Anything, filters, 1, 20).Return(nil, int64(0), errors.New("database error"))
 
-	service := NewService(mockRepo)
+	service := NewService(mockRepo, newTestSecurityConfig())
 	users, total, err := service.ListUsers(context.Background(), filters, 1, 20)
 
 	assert.Error(t, err)
@@ -875,7 +894,7 @@ func TestService_UpdateUser_ErrorPaths(t *testing.T) {
 			mockRepo := &MockRepository{}
 			tt.setupMock(mockRepo)
 
-			service := NewService(mockRepo)
+			service := NewService(mockRepo, newTestSecurityConfig())
 			user, err := service.UpdateUser(context.Background(), tt.userID, tt.request)
 
 			assert.Error(t, err)

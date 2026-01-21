@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/golang-lru/v2/expirable"
 	"golang.org/x/time/rate"
 
-	apiErrors "github.com/uyou/uyou-go-api-starter/internal/errors"
+	apiErrors "github.com/yeegeek/uyou-go-api-starter/internal/errors"
 )
 
 // Storage abstracts the backing store for per-key limiters.

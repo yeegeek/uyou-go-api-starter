@@ -69,6 +69,22 @@ func (c *Cache) Delete(ctx context.Context, keys ...string) error {
 	return c.client.Delete(ctx, keys...)
 }
 
+// Increment 增加指定键的数值（用于计数）
+func (c *Cache) Increment(ctx context.Context, key string, value int64) (int64, error) {
+	// 使用底层客户端的原子递增能力
+	return c.client.IncrementBy(ctx, key, value)
+}
+
+// Expire 设置键的过期时间
+func (c *Cache) Expire(ctx context.Context, key string, expiration time.Duration) error {
+	return c.client.Expire(ctx, key, expiration)
+}
+
+// TTL 获取键的剩余过期时间
+func (c *Cache) TTL(ctx context.Context, key string) (time.Duration, error) {
+	return c.client.TTL(ctx, key).Result()
+}
+
 // DeletePattern 删除匹配模式的所有键
 func (c *Cache) DeletePattern(ctx context.Context, pattern string) error {
 	var cursor uint64

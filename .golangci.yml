@@ -20,7 +20,7 @@ linters-settings:
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: github.com/uyou/uyou-go-api-starter
+    local-prefixes: github.com/yeegeek/uyou-go-api-starter
 
 issues:
   exclude-use-default: false

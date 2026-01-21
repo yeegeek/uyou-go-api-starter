@@ -14,11 +14,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 
-	"github.com/uyou/uyou-go-api-starter/internal/auth"
-	"github.com/uyou/uyou-go-api-starter/internal/config"
-	"github.com/uyou/uyou-go-api-starter/internal/db"
-	"github.com/uyou/uyou-go-api-starter/internal/server"
-	"github.com/uyou/uyou-go-api-starter/internal/user"
+	"github.com/yeegeek/uyou-go-api-starter/internal/auth"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/db"
+	"github.com/yeegeek/uyou-go-api-starter/internal/server"
+	"github.com/yeegeek/uyou-go-api-starter/internal/user"
 )
 
 // createTestSchema creates the SQLite test schema using GORM AutoMigrate for consistency
@@ -71,7 +71,17 @@ func setupTestRouter(t *testing.T) *gin.Engine {
 
 	authService := auth.NewServiceWithRepo(&testCfg.JWT, database)
 	userRepo := user.NewRepository(database)
-	userService := user.NewService(userRepo)
+	securityCfg := &config.SecurityConfig{
+		BcryptCost:            12,
+		PasswordMinLength:     8,
+		PasswordRequireUppercase: true,
+		PasswordRequireLowercase: true,
+		PasswordRequireNumber:    true,
+		PasswordRequireSpecial:  true,
+		MaxLoginAttempts:        5,
+		LockoutDuration:         15,
+	}
+	userService := user.NewService(userRepo, securityCfg)
 	userHandler := user.NewHandler(userService, authService)
 
 	router := server.SetupRouter(userHandler, authService, testCfg, database)
@@ -94,7 +104,17 @@ func setupRateLimitTestRouter(t *testing.T) *gin.Engine {
 
 	authService := auth.NewServiceWithRepo(&testCfg.JWT, database)
 	userRepo := user.NewRepository(database)
-	userService := user.NewService(userRepo)
+	securityCfg := &config.SecurityConfig{
+		BcryptCost:            12,
+		PasswordMinLength:     8,
+		PasswordRequireUppercase: true,
+		PasswordRequireLowercase: true,
+		PasswordRequireNumber:    true,
+		PasswordRequireSpecial:  true,
+		MaxLoginAttempts:        5,
+		LockoutDuration:         15,
+	}
+	userService := user.NewService(userRepo, securityCfg)
 	userHandler := user.NewHandler(userService, authService)
 
 	return server.SetupRouter(userHandler, authService, testCfg, database)
@@ -114,7 +134,7 @@ func TestRegisterHandler(t *testing.T) {
 			payload: map[string]string{
 				"name":     "John Doe",
 				"email":    "john@example.com",
-				"password": "password123",
+				"password": "Password123*",
 			},
 			expectedStatus: http.StatusOK,
 			checkResponse: func(t *testing.T, body map[string]interface{}) {
@@ -145,7 +165,7 @@ func TestRegisterHandler(t *testing.T) {
 			payload: map[string]string{
 				"name":     "Jane Doe",
 				"email":    "john@example.com",
-				"password": "password123",
+				"password": "Password123*",
 			},
 			expectedStatus: http.StatusConflict,
 			checkResponse: func(t *testing.T, body map[string]interface{}) {
@@ -166,7 +186,7 @@ func TestRegisterHandler(t *testing.T) {
 			payload: map[string]string{
 				"name":     "Invalid User",
 				"email":    "not-an-email",
-				"password": "password123",
+				"password": "Password123*",
 			},
 			expectedStatus: http.StatusBadRequest,
 			checkResponse: func(t *testing.T, body map[string]interface{}) {
@@ -235,7 +255,7 @@ func TestLoginHandler(t *testing.T) {
 	registerPayload := map[string]string{
 		"name":     "Test User",
 		"email":    "test@example.com",
-		"password": "testpassword123",
+		"password": "TestPass123!",
 	}
 	jsonPayload, _ := json.Marshal(registerPayload)
 	req, _ := http.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewBuffer(jsonPayload))
@@ -253,7 +273,7 @@ func TestLoginHandler(t *testing.T) {
 			name: "successful login",
 			payload: map[string]string{
 				"email":    "test@example.com",
-				"password": "testpassword123",
+				"password": "TestPass123!",
 			},
 			expectedStatus: http.StatusOK,
 			checkResponse: func(t *testing.T, body map[string]interface{}) {
@@ -296,7 +316,7 @@ func TestLoginHandler(t *testing.T) {
 			name: "non-existent user",
 			payload: map[string]string{
 				"email":    "nonexistent@example.com",
-				"password": "password123",
+				"password": "Password123*",
 			},
 			expectedStatus: http.StatusUnauthorized,
 			checkResponse: func(t *testing.T, body map[string]interface{}) {
@@ -386,7 +406,7 @@ func TestRateLimit_BlocksThenAllows(t *testing.T) {
 	registerBody, _ := json.Marshal(map[string]string{
 		"name":     "Rate Test",
 		"email":    fmt.Sprintf("rate%d@example.com", time.Now().UnixNano()),
-		"password": "secret123",
+		"password": "Secret123!",
 	})
 	req, _ := http.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewBuffer(registerBody))
 	req.Header.Set("Content-Type", "application/json")
@@ -414,7 +434,7 @@ func TestRateLimit_BlocksThenAllows(t *testing.T) {
 
 	loginBody, _ := json.Marshal(map[string]string{
 		"email":    email,
-		"password": "secret123",
+		"password": "Secret123!",
 	})
 
 	successCount := 0

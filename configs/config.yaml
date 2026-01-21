@@ -65,8 +65,8 @@ health:
   database_check_enabled: true      # Override with HEALTH_DATABASE_CHECK_ENABLED
 # MongoDB 配置
 mongodb:
-  enabled: false                    # Override with MONGODB_ENABLED
-  uri: "mongodb://localhost:27017"  # Override with MONGODB_URI
+  enabled: true                    # Override with MONGODB_ENABLED
+  uri: "mongodb://mongodb:27017"   # Override with MONGODB_URI (使用 Docker 服务名)
   database: "uyou_api"              # Override with MONGODB_DATABASE
   max_pool_size: 100                # Override with MONGODB_MAX_POOL_SIZE
   min_pool_size: 10                 # Override with MONGODB_MIN_POOL_SIZE
@@ -74,8 +74,8 @@ mongodb:
 
 # Redis 配置
 redis:
-  enabled: false                    # Override with REDIS_ENABLED
-  host: "localhost"                 # Override with REDIS_HOST
+  enabled: true                    # Override with REDIS_ENABLED
+  host: "redis"                     # Override with REDIS_HOST (使用 Docker 服务名)
   port: 6379                        # Override with REDIS_PORT
   password: ""                      # Override with REDIS_PASSWORD
   db: 0                             # Override with REDIS_DB
@@ -86,9 +86,11 @@ redis:
   min_idle_conns: 5                 # Override with REDIS_MIN_IDLE_CONNS
 
 # RabbitMQ 配置
+# 注意：所有微服务连接到同一个 RabbitMQ 实例
+# 通过代码控制是否发布/订阅，不需要配置限制
 rabbitmq:
-  enabled: false                    # Override with RABBITMQ_ENABLED
-  url: "amqp://guest:guest@localhost:5672/"  # Override with RABBITMQ_URL
+  enabled: true                    # Override with RABBITMQ_ENABLED
+  url: "amqp://guest:guest@rabbitmq:5672/"  # Override with RABBITMQ_URL (使用 Docker 服务名)
   exchange: "uyou_events"           # Override with RABBITMQ_EXCHANGE
   exchange_type: "topic"            # Override with RABBITMQ_EXCHANGE_TYPE
   queue: "uyou_queue"               # Override with RABBITMQ_QUEUE
@@ -97,7 +99,7 @@ rabbitmq:
 
 # gRPC 配置
 grpc:
-  enabled: false                    # Override with GRPC_ENABLED
+  enabled: true                    # Override with GRPC_ENABLED
   port: "9090"                      # Override with GRPC_PORT
   max_recv_msg_size: 4194304        # Override with GRPC_MAX_RECV_MSG_SIZE (4MB)
   max_send_msg_size: 4194304        # Override with GRPC_MAX_SEND_MSG_SIZE (4MB)
@@ -105,7 +107,7 @@ grpc:
 
 # Prometheus 监控配置
 metrics:
-  enabled: false                    # Override with METRICS_ENABLED
+  enabled: true                    # Override with METRICS_ENABLED
   port: "9091"                      # Override with METRICS_PORT
   path: "/metrics"                  # Override with METRICS_PATH
 

@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"unicode"
 
-	"github.com/uyou/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
 )
 
 var (

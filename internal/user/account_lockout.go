@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/uyou/uyou-go-api-starter/internal/config"
-	"github.com/uyou/uyou-go-api-starter/internal/redis"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/redis"
 )
 
 // AccountLockoutService 账户锁定服务

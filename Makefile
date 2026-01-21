@@ -17,60 +17,61 @@ else
 	ENV_MSG = 💻 Running on host (Docker not available)
 endif
 
-## help: Show this help message
+## help: 显示帮助信息
 help:
-	@echo "Go REST API Boilerplate - Available Commands"
+	@echo "Go REST API 脚手架 - 可用命令"
 	@echo "=============================================="
 	@echo ""
-	@echo "🚀 Quick Start:"
-	@echo "  make quick-start    - Complete setup and start (Docker required)"
+	@echo "🚀 快速开始:"
+	@echo "  make quick-start    - 完整设置并启动（需要 Docker）"
 	@echo ""
-	@echo "🐳 Docker Commands:"
-	@echo "  make up             - Start containers"
-	@echo "  make down           - Stop containers"
-	@echo "  make restart        - Restart containers"
-	@echo "  make logs           - View container logs"
-	@echo "  make build          - Rebuild containers"
+	@echo "🐳 Docker 命令:"
+	@echo "  make up             - 启动容器"
+	@echo "  make down           - 停止容器"
+	@echo "  make restart        - 重启容器"
+	@echo "  make logs           - 查看容器日志"
+	@echo "  make build          - 重新构建容器"
 	@echo ""
-	@echo "🧪 Development Commands:"
-	@echo "  make test           - Run tests"
-	@echo "  make test-coverage  - Run tests with coverage"
-	@echo "  make lint           - Run linter"
-	@echo "  make lint-fix       - Run linter and fix issues"
-	@echo "  make swag           - Generate Swagger docs"
+	@echo "🧪 开发命令:"
+	@echo "  make test           - 运行测试"
+	@echo "  make test-coverage  - 运行测试并生成覆盖率报告"
+	@echo "  make lint           - 运行代码检查"
+	@echo "  make lint-fix       - 运行代码检查并自动修复问题"
+	@echo "  make swag           - 生成 Swagger 文档"
 	@echo ""
-	@echo "🔒 Security Commands:"
-	@echo "  make generate-jwt-secret  - Generate and set JWT secret in .env"
-	@echo "  make check-env            - Check required environment variables"
+	@echo "🔒 安全命令:"
+	@echo "  make generate-jwt-secret  - 生成并设置 JWT 密钥到 .env"
+	@echo "  make check-env            - 检查必需的环境变量"
 	@echo ""
-	@echo "👤 Admin Management:"
-	@echo "  make create-admin         - Create new admin user (interactive)"
-	@echo "  make promote-admin ID=<n> - Promote existing user to admin"
+	@echo "👤 管理员管理:"
+	@echo "  make create-admin         - 创建新管理员用户（交互式）"
+	@echo "  make promote-admin ID=<n> - 将现有用户提升为管理员"
 	@echo ""
-	@echo "📊️  Database Commands:
-  make setup-db       - Configure database options (PostgreSQL/MongoDB/Redis)"
-	@echo "  make migrate-create NAME=<name>  - Create new migration"
-	@echo "  make migrate-up                  - Apply all pending migrations"
-	@echo "  make migrate-down                - Rollback last migration (or STEPS=N for N migrations)"
-	@echo "  make migrate-status              - Show current migration version"
-	@echo "  make migrate-goto VERSION=<n>    - Go to specific version"
-	@echo "  make migrate-force VERSION=<n>   - Force set version (recovery)"
-	@echo "  make migrate-drop                - Drop all tables"
+	@echo "📊️  数据库命令:"
+	@echo "  make migrate-create NAME=<name>  - 创建新迁移"
+	@echo "  make migrate-up                  - 应用所有待执行的迁移"
+	@echo "  make migrate-down                - 回滚最后一次迁移（或使用 STEPS=N 回滚 N 次）"
+	@echo "  make migrate-status              - 显示当前迁移版本"
+	@echo "  make migrate-goto VERSION=<n>    - 跳转到指定版本"
+	@echo "  make migrate-force VERSION=<n>   - 强制设置版本（恢复用）"
+	@echo "  make migrate-drop                - 删除所有表"
 	@echo ""
-	@echo "⚙️  Native Build (requires Go on host):"
-	@echo "  make build-binary   - Build Go binary directly (no Docker)"
-	@echo "  make run-binary     - Build and run binary directly (no Docker)"
+	@echo "⏰ 定时任务:"
+	@echo "  make scheduler      - 运行定时任务调度器"
 	@echo ""
-	@echo "🧹 Utility:"
-	@echo "  make clean          - Clean build artifacts"
+	@echo "⚙️  本地构建（需要宿主机安装 Go）:"
+	@echo "  make build-binary   - 直接在宿主机构建 Go 二进制文件（不使用 Docker）"
+	@echo "  make run-binary     - 直接在宿主机构建并运行二进制文件（不使用 Docker）"
 	@echo ""
-	@echo "💡 Most commands auto-detect Docker/host environment"
-	@echo "💡 Native build commands require Go installed on your machine"
+	@echo "🧹 工具命令:"
+	@echo "  make clean          - 清理构建产物"
+	@echo ""
+	@echo "💡 大多数命令会自动检测 Docker/宿主机环境"
+	@echo "💡 本地构建命令需要您的机器上安装 Go"
 
 ## quick-start: Complete setup and start the project
 quick-start:
-	@chmod +x scripts/setup-database.sh scripts/quick-start.sh
-	@./scripts/setup-database.sh
+	@chmod +x scripts/quick-start.sh
 	@./scripts/quick-start.sh
 
 ## up: Start Docker containers
@@ -430,10 +431,10 @@ generate-jwt-secret:
 		echo "⚠️  NEVER commit .env to git!"; \
 		fi
 
-## setup-db: Configure database options
-setup-db:
-	@chmod +x scripts/setup-database.sh
-	@./scripts/setup-database.sh
+## setup-db: Configure database options (DEPRECATED - all databases are now included by default)
+# setup-db:
+# 	@chmod +x scripts/setup-database.sh
+# 	@./scripts/setup-database.sh
 
 ## scheduler: Run scheduler service
 scheduler:

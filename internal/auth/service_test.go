@@ -8,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/uyou/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
 )
 
 func TestNewService(t *testing.T) {
@@ -35,7 +35,7 @@ func TestNewService(t *testing.T) {
 			},
 		},
 		{
-			name: "with empty secret defaults to default",
+			name: "with empty secret remains empty (validation should catch this)",
 			cfg: &config.JWTConfig{
 				Secret:   "",
 				TTLHours: 12,
@@ -44,7 +44,7 @@ func TestNewService(t *testing.T) {
 				secret string
 				ttl    time.Duration
 			}{
-				secret: "default-secret-change-in-production",
+				secret: "", // 不再有默认值，配置验证会在启动时捕获
 				ttl:    12 * time.Hour,
 			},
 		},
@@ -102,13 +102,13 @@ func TestNewServiceWithRepo(t *testing.T) {
 			expectedRefreshTTL: 14 * 24 * time.Hour,
 		},
 		{
-			name: "with empty secret defaults to default",
+			name: "with empty secret remains empty (validation should catch this)",
 			cfg: &config.JWTConfig{
 				Secret:          "",
 				AccessTokenTTL:  15 * time.Minute,
 				RefreshTokenTTL: 7 * 24 * time.Hour,
 			},
-			expectedSecret:     "default-secret-change-in-production",
+			expectedSecret:     "", // 不再有默认值，配置验证会在启动时捕获
 			expectedAccessTTL:  15 * time.Minute,
 			expectedRefreshTTL: 7 * 24 * time.Hour,
 		},

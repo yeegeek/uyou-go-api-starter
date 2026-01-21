@@ -8,7 +8,7 @@ import (
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
-	"github.com/uyou/uyou-go-api-starter/internal/config"
+	"github.com/yeegeek/uyou-go-api-starter/internal/config"
 )
 
 // RabbitMQ RabbitMQ 客户端
@@ -131,8 +131,9 @@ func (r *RabbitMQ) Publish(ctx context.Context, routingKey string, body []byte) 
 	)
 }
 
-// Consume 消费消息
-func (r *RabbitMQ) Consume(ctx context.Context, handler func([]byte) error) error {
+// Subscribe 订阅消息（实现 MessageQueue 接口）
+// topic 参数在 RabbitMQ 中会被忽略，因为队列已经绑定到交换机
+func (r *RabbitMQ) Subscribe(ctx context.Context, topic string, handler MessageHandler) error {
 	// 开始消费
 	msgs, err := r.channel.Consume(
 		r.config.Queue, // 队列名称
@@ -147,7 +148,7 @@ func (r *RabbitMQ) Consume(ctx context.Context, handler func([]byte) error) erro
 		return fmt.Errorf("failed to consume messages: %w", err)
 	}
 
-	slog.Info("Started consuming messages", "queue", r.config.Queue)
+	slog.Info("Started consuming messages", "queue", r.config.Queue, "topic", topic)
 
 	// 处理消息
 	for {
@@ -161,7 +162,7 @@ func (r *RabbitMQ) Consume(ctx context.Context, handler func([]byte) error) erro
 			}
 
 			// 处理消息
-			if err := handler(msg.Body); err != nil {
+			if err := handler(ctx, msg.Body); err != nil {
 				slog.Error("Failed to handle message", "error", err)
 				// 拒绝消息并重新入队
 				msg.Nack(false, true)
@@ -171,6 +172,14 @@ func (r *RabbitMQ) Consume(ctx context.Context, handler func([]byte) error) erro
 			}
 		}
 	}
+}
+
+// Consume 消费消息（保留向后兼容性）
+// Deprecated: 使用 Subscribe 方法代替
+func (r *RabbitMQ) Consume(ctx context.Context, handler func([]byte) error) error {
+	return r.Subscribe(ctx, "", func(ctx context.Context, body []byte) error {
+		return handler(body)
+	})
 }
 
 // HealthCheck 检查连接健康状态

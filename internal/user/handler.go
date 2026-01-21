@@ -8,10 +8,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/uyou/uyou-go-api-starter/internal/auth"
-	"github.com/uyou/uyou-go-api-starter/internal/contextutil"
-	apiErrors "github.com/uyou/uyou-go-api-starter/internal/errors"
-	"github.com/uyou/uyou-go-api-starter/internal/middleware"
+	"github.com/yeegeek/uyou-go-api-starter/internal/auth"
+	"github.com/yeegeek/uyou-go-api-starter/internal/contextutil"
+	apiErrors "github.com/yeegeek/uyou-go-api-starter/internal/errors"
+	"github.com/yeegeek/uyou-go-api-starter/internal/middleware"
 )
 
 // Handler handles user-related HTTP requests
